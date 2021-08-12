@@ -2,10 +2,6 @@
 
 class Tools
 {
-	public $log_file = '';
-	public $log_base = '/tmp/';
-	public $slack_url = '';
-	public $failed_slack_url = "";
 	public $cookie_file = '';
 	public $postToUrlRetry = true;
 	public $postToUrlFollowRedirect = false;
@@ -52,13 +48,25 @@ class Tools
 			$info = json_encode($info);
 		}
         $log = "[".date("Y-m-d H:i:s")."] {$info}\n\n";
+        
+        $log_base = "/tmp/";
+        $log_extention = ".log";
+        if ($this->isRemoteUser()) {
+            $log_base = "{$_SERVER['HOME']}/logs/";
+            $log_extention = "/log";
+        }
+        $log_file = $log_base . $this->scriptName() . $log_extention;
+        $log_dir = dirname($log_file);
+        if (!is_dir($log_dir)) {
+            mkdir($log_dir, 0770, true);
+        }
 
 	    if ($this->debug_mode) {
             echo $log;
         }
 
-        if ($this->log_file) {
-			file_put_contents($this->log_base . $this->log_file, $log, FILE_APPEND);
+        if ($log_file) {
+			file_put_contents($log_file, $log, FILE_APPEND);
 		} else {
 			error_log("no log_file set in {$_SERVER['PHP_SELF']}");
 		}
@@ -85,17 +93,11 @@ class Tools
 
 	public function sendError($error, $exit = false) {
         $this->logToFile($error);
-        if ($this->failed_slack_url) {
-            $this->postToSlack($error, $this->failed_slack_url);
-        } elseif ($this->slack_url) {
-            $fields = [
-                "text"    => $error,
-                "channel" => $this->config['slack']['error_channel'],
-            ];
-            $this->postToSlack($fields);
-        } else {
-            error_log($error);
-        }
+        $fields = [
+            "text"    => $error,
+            "channel" => $this->config['slack']['error_channel'],
+        ];
+        $this->postToSlack($fields);
 
         if ($exit) {
             exit;
@@ -114,7 +116,7 @@ class Tools
 			$fields = json_encode($fields);
 		}
 
-        $slack_url = $url ? $url : $this->slack_url;
+        $slack_url = $url ? $url : $this->slackUrl();
 		$this->logToFile("sending '{$msg}' to slack");
 		$result_json = $this->postToUrl($slack_url, $fields);
 		$result = json_decode($result_json, true);
@@ -386,7 +388,7 @@ class Tools
         $urls = $this->config['plex']['urls'];
         $token = $this->getPlexToken();
         $url = $urls[$server]['local'];
-        if (isset($_SERVER['USER']) && $_SERVER['USER'] == $this->config["remote_user"]) {
+        if ($this->isRemoteUser()) {
             $url = $urls[$server]['remote'];
         }
         if (!$url) {
@@ -494,7 +496,7 @@ class Tools
 	}
 
 	public function triggerOpenGarage($action) {
-		$this->slack_url = $this->config['opengarage']['slack_url'];
+		//$this->slack_url = $this->config['opengarage']['slack_url'];
 		if ($this->getOpenGarageStatus()[0] != $action) {
 			$result = $this->callOpenGarage('cc', [$action=>1]);
 			if (isset($_REQUEST['source']) && $_REQUEST['source']) {
@@ -554,5 +556,23 @@ class Tools
                 $_REQUEST = array_merge($_REQUEST, json_decode($HTTP_RAW_POST_DATA, true));
             }
         }
+    }
+
+    public function isRemoteUser() {
+        if (isset($_SERVER['USER']) && $_SERVER['USER'] == $this->config["remote_user"]) {
+            return true;
+        }
+        return false;
+    }
+
+    public function scriptName() {
+        return pathinfo($_SERVER['SCRIPT_FILENAME'], PATHINFO_FILENAME);
+    }
+
+    public function slackUrl() {
+        if (!empty($this->config['slack']['urls'][$this->scriptName()])) {
+            return $this->config['slack']['urls'][$this->scriptName()];
+        }
+        return $this->config['slack']['urls']['default'];
     }
 }

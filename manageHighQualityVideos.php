@@ -7,7 +7,7 @@ require_once "tools.php";
 $tools = new Tools();
 
 $removed = false;
-$movies_data = $tools->callPlex("/library/sections/1/all", 'drobo');
+$movies_data = $tools->callPlex("/library/sections/1/all", 'local');
 if (!$movies_data) {
     $tools->sendError("failed getting Plex movies list in manageHighQualityVideos", true);
 }
@@ -32,5 +32,5 @@ foreach ($movies_data['MediaContainer']['Metadata'] as $movie) {
 }
 
 if ($removed) {
-    $tools->postToUrl($tools->config['video_sync_url']);
+    $tools->postToUrl($tools->config['urls']['video_sync']);
 }
