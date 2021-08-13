@@ -575,4 +575,10 @@ class Tools
         }
         return $this->config['slack']['urls']['default'];
     }
+
+    public function cliOnly() {
+        if (php_sapi_name() !== 'cli') {
+            exit('access denied');
+        }
+    }
 }

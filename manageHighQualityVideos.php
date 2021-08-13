@@ -5,6 +5,7 @@ chdir(__DIR__);
 require_once "tools.php";
 
 $tools = new Tools();
+$tools->cliOnly();
 
 $removed = false;
 $movies_data = $tools->callPlex("/library/sections/1/all", 'local');
