@@ -38,6 +38,7 @@ class Tools
                 }
             }
         }
+        $this->checkSecret();
     }
 
     public function logToFile($info, $exit=false, $debug_msg=false) {
@@ -543,7 +544,11 @@ class Tools
         if ($_SERVER['REMOTE_ADDR'] == $_SERVER['SERVER_ADDR']) {
             return;
         }
-	    if (!isset($_REQUEST[$this->config['secret_field']]) || $_REQUEST[$this->config['secret_field']] != $this->secret) {
+        if (!isset($this->config['secrets'][$this->scriptName()])) {
+            return;
+        }
+        $secret = $this->config['secrets'][$this->scriptName()];
+	    if (!isset($_REQUEST[$this->config['secret_field']]) || $_REQUEST[$this->config['secret_field']] != $secret) {
             $this->logToFile("invalid secret. request: " . json_encode($_REQUEST));
 	        $this->send404();
         }
