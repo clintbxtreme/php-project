@@ -4,7 +4,6 @@ chdir(__DIR__);
 require_once "tools.php";
 
 $tools = new Tools();
-$tools->cliOnly();
 
 $accounts_data = $tools->callPlex("/accounts", 'remote');
 if (!$accounts_data) {

@@ -29,4 +29,3 @@ switch ($_REQUEST['script']){
         exec("{$script_directory}/{$sync_script} car_movies & &>/dev/null");
         break;
 }
-

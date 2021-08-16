@@ -5,7 +5,6 @@ chdir(__DIR__);
 require_once "tools.php";
 
 $tools = new Tools();
-$tools->cliOnly();
 $tools->curl_timeout = 60;
 
 $data_raw = $tools->callPlex("/library/sections/2/search?type=4", 'local');

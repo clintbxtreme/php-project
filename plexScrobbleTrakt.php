@@ -5,7 +5,6 @@ chdir(__DIR__);
 require_once "tools.php";
 
 $tools = new Tools();
-$tools->cliOnly();
 $tools->postToUrlRetry = false;
 
 $action = $argv[1] ? $argv[1] : '';
