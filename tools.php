@@ -306,7 +306,7 @@ class Tools
                     $code_response_json = $this->postToUrl("{$this->trakt_url}/oauth/device/token", $data, $headers);
                     $code_response = json_decode($code_response_json, true);
                     if ($code_response) {
-                        $this->saveTraktTokenInfo($code_response);
+                        $this->saveTraktTokenInfo(array_merge($info, $code_response));
 
                         return true;
                     }
@@ -345,14 +345,14 @@ class Tools
             ];
             $response_json = $this->postToUrl("{$this->trakt_url}/oauth/token", json_encode($data), $headers);
             $response = json_decode($response_json, true);
-            $this->saveTraktTokenInfo($response);
+            $this->saveTraktTokenInfo(array_merge($info, $response));
         }
 	}
 
     protected function saveTraktTokenInfo($info)
     {
         $save_data = [];
-        foreach (['access_token', 'refresh_token', 'expires_in', 'created_at'] as $req) {
+        foreach (['client_id', 'client_secret', 'access_token', 'refresh_token', 'expires_in', 'created_at'] as $req) {
             if (empty($info[$req])) {
                 $error_msg = "trakt save failure: missing {$req}";
                 $this->sendError($error_msg, true);
