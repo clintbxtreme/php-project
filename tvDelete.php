@@ -24,14 +24,13 @@ foreach ($episodes as $ep) {
         $filename = $filename_info['Part'][0]['file'];
         if (!strpos($filename, 'Other Videos')) {
             // $tools->logToFile("Not in archive yet: {$episode_name}");
-            continue;
+            continue 2;
         }
-        $success = unlink($filename);
-
-        if ($success) {
-            $tools->logToFile("Removed {$filename}");
-        } else {
-            $tools->postToSlack("Failed removing {$filename}");
-        }
+    }
+    $tools->callPlex($ep['key'], 'local', 'DELETE');
+    if ($tools->curl_error || $tools->curl_error_number || $tools->curl_http_code != 200) {
+        $tools->sendError("Failed deleting {$episode_name}");
+    } else {
+        $tools->logToFile("Deleted {$episode_name}");
     }
 }
