@@ -541,7 +541,7 @@ class Tools
 	}
 
 	public function checkSecret() {
-        if (isset($_SERVER['REMOTE_ADDR']) && isset($_SERVER['SERVER_ADDR']) && $_SERVER['REMOTE_ADDR'] == $_SERVER['SERVER_ADDR']) {
+        if (isset($_SERVER['REMOTE_ADDR']) && isset($_SERVER['SERVER_ADDR']) && $_SERVER['REMOTE_ADDR'] == $_SERVER['SERVER_ADDR'] && $_SERVER['REMOTE_ADDR'] != "127.0.0.1") {
             return;
         }
         if (!isset($this->config['secrets'][$this->scriptName()])) {
