@@ -32,5 +32,5 @@ foreach ($movies_data['MediaContainer']['Metadata'] as $movie) {
 }
 
 if ($removed) {
-    $tools->postToUrl($tools->config['urls']['video_sync']);
+    $tools->postToUrl($tools->config['urls']['video_sync'], [$tools->config['secret_field'] => $tools->config['secrets']['triggerScript']]);
 }
