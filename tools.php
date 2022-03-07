@@ -332,7 +332,7 @@ class Tools
                 $this->sendError($error_msg, true);
             }
         }
-        if (strtotime('5 days ago')  >= $info['created_at'] + $info['expires_in']) {
+        if (time()  >= $info['created_at'] + $info['expires_in']) {
             $data = [
                 "refresh_token" => $info['refresh_token'],
                 "client_id"     => $info['client_id'],
