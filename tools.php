@@ -17,6 +17,7 @@ class Tools
 
     private $redis;
     private $trakt_url = "https://api.trakt.tv";
+    private $plex_url;
 
     /**
      * Tools constructor.
@@ -386,18 +387,10 @@ class Tools
 	}
 
 	public function createPlexUrl($endpoint, $server, $include_token = false) {
-        $urls = $this->config['plex']['urls'];
-        $token = $this->getPlexToken();
-        $url = $urls[$server]['local'];
-        if ($this->isRemoteUser()) {
-            $url = $urls[$server]['remote'];
-        }
-        if (!$url) {
-            $this->sendError('unable to find {$server} Plex IP');
-            throw new Exception('Plex IP find failure', 1);
-        }
+        $url = $this->getPlexUrl($server);
         $url .= $endpoint;
         if ($include_token) {
+            $token = $this->getPlexToken();
             $prefix = "?";
             if (strpos($endpoint, '?')) {
                 $prefix = "&";
@@ -441,6 +434,43 @@ class Tools
 	private function getPlexToken() {
 		return $this->config['plex']['token'];
 	}
+
+    public function getPlexUrl($server) {
+        if ($this->plex_url) {
+            return $this->plex_url;
+        }
+
+        $url = "https://plex.tv/api/v2/resources";
+        $data = [
+            "X-Plex-Client-Identifier" => 1234,
+            "X-Plex-Token" => $this->getPlexToken(),
+            "includeHttps" => true,
+        ];
+        $headers = [
+			"Accept: application/json",
+		];
+        $file_contents = $this->postToUrl($url, $data, $headers, "GET");
+		$data = json_decode($file_contents, true);
+        $url = "";
+        $public_ip = $this->getPublicIp();
+        foreach($data as $d) {
+            if ($d['name'] == $this->config['plex']['servers'][$server]) {
+                foreach($d['connections'] as $conn) {
+                    if ($conn['local'] && $d['publicAddress'] == $public_ip) {
+                        $url = $conn['uri'];
+                    } elseif (!$conn['local'] && $d['publicAddress'] != $public_ip) {
+                        $url = $conn['uri'];
+                    }
+                }
+            }
+        }
+        if (!$url) {
+            $this->sendError('unable to find {$server} Plex URI');
+            throw new Exception('Plex URI find failure', 1);
+        }
+        $this->plex_url = $url;
+        return $this->plex_url;
+    }
 
 	private function callOpenGarage($endpoint, $params = []) {
 		$open_garage_ip = $this->getOpenGarageIp();
@@ -585,5 +615,9 @@ class Tools
         if (php_sapi_name() !== 'cli') {
             exit('access denied');
         }
+    }
+
+    public function getPublicIp() {
+        return file_get_contents("http://ipecho.net/plain");
     }
 }
