@@ -17,7 +17,7 @@ class Tools
 
     private $redis;
     private $trakt_url = "https://api.trakt.tv";
-    private $plex_url;
+    private $plex_urls;
 
     /**
      * Tools constructor.
@@ -436,8 +436,8 @@ class Tools
 	}
 
     public function getPlexUrl($server) {
-        if ($this->plex_url) {
-            return $this->plex_url;
+        if ($this->plex_urls) {
+            return $this->plex_urls[$server];
         }
 
         $url = "https://plex.tv/api/v2/resources";
@@ -451,25 +451,25 @@ class Tools
 		];
         $file_contents = $this->postToUrl($url, $data, $headers, "GET");
 		$data = json_decode($file_contents, true);
-        $url = "";
         $public_ip = $this->getPublicIp();
+        $servers = $this->config['plex']['servers'];
+        $servers_lookup = array_flip($servers);
         foreach($data as $d) {
-            if ($d['name'] == $this->config['plex']['servers'][$server]) {
+            if (isset($servers_lookup[$d['name']])) {
                 foreach($d['connections'] as $conn) {
                     if ($conn['local'] && $d['publicAddress'] == $public_ip) {
-                        $url = $conn['uri'];
+                        $this->plex_urls[$servers_lookup[$d['name']]] = $conn['uri'];
                     } elseif (!$conn['local'] && $d['publicAddress'] != $public_ip) {
-                        $url = $conn['uri'];
+                        $this->plex_urls[$servers_lookup[$d['name']]] = $conn['uri'];
                     }
                 }
             }
         }
-        if (!$url) {
+        if (!isset($this->plex_urls[$server])) {
             $this->sendError('unable to find {$server} Plex URI');
             throw new Exception('Plex URI find failure', 1);
         }
-        $this->plex_url = $url;
-        return $this->plex_url;
+        return $this->plex_urls[$server];
     }
 
 	private function callOpenGarage($endpoint, $params = []) {
