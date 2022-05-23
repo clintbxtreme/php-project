@@ -50,7 +50,11 @@ foreach ($types as $type => $section) {
             $rating = $rating_data['key'];
             if ($type == 'movie' && $rating == 'None') {
                 $movies = $tools->callPlex("/library/sections/1/all?contentRating={$rating}", $server);
-                foreach ($movies['MediaContainer']['Metadata'] as $m) {
+                if (!$movies['MediaContainer']['size']) {
+                    $tools->logToFile("Nothing for {$type} rating key of {$rating} found on {$server}");
+                    continue;
+                }
+                    foreach ($movies['MediaContainer']['Metadata'] as $m) {
                     $status = $tools->callPlex("/library/metadata/{$m['ratingKey']}/refresh", $server, 'PUT');
                     if ($tools->curl_http_code != 200) {
                         $tools->sendError("Failed refreshing {$m['title']} ({$m['year']}) on {$server}");
