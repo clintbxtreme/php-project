@@ -84,6 +84,8 @@ if ($files_to_archive) {
         'action' => 'archive',
         'files'  => $files_to_archive,
     ];
+    $tools->postToUrlRetry = false;
+    $tools->curl_timeout = 30;
     $tools->postToUrl($tools->config['urls']['local'] . "/videoArchive.php", http_build_query($params));
     if ($tools->curl_error || $tools->curl_error_number || $tools->curl_http_code != 200) {
         $tools->sendError("Failed calling videoArchive.php", true);
