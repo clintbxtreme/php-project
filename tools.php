@@ -458,9 +458,9 @@ class Tools
             if (isset($servers_lookup[$d['name']])) {
                 foreach($d['connections'] as $conn) {
                     if ($conn['local'] && $d['publicAddress'] == $public_ip) {
-                        $this->plex_urls[$servers_lookup[$d['name']]] = "{$conn['protocol']}://{$conn['address']}:{$conn['port']}";
+                        $this->plex_urls[$server] = "http://{$conn['address']}:{$conn['port']}";
                     } elseif (!$conn['local'] && $d['publicAddress'] != $public_ip && !$conn['relay']) {
-                        $this->plex_urls[$servers_lookup[$d['name']]] = $conn['uri'];
+                        $this->plex_urls[$server] = $conn['uri'];
                     }
                 }
             }
