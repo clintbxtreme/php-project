@@ -72,6 +72,9 @@ switch ($action) {
                     if (isset($trakt_watched[$show][$season][$episode])) {
                         continue;
                     }
+                    if (isset($tools->config["trakt_ignored_episodes"][$show][$season][$episode])) {
+                        continue;
+                    }
 
                     $data = [
                         'show' => $trakt_shows[$show],
