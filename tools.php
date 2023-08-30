@@ -451,16 +451,14 @@ class Tools
 		];
         $file_contents = $this->postToUrl($url, $data, $headers, "GET");
 		$data = json_decode($file_contents, true);
-        $public_ip = $this->getPublicIp();
         $servers = $this->config['plex']['servers'];
-        $servers_lookup = array_flip($servers);
         foreach($data as $d) {
-            if (isset($servers_lookup[$d['name']])) {
+            if (isset($servers[$d['name']])) {
                 foreach($d['connections'] as $conn) {
-                    if ($conn['local'] && $d['publicAddress'] == $public_ip) {
-                        $this->plex_urls[$servers_lookup[$d['name']]] = "http://{$conn['address']}:{$conn['port']}";
-                    } elseif (!$conn['local'] && $d['publicAddress'] != $public_ip && !$conn['relay']) {
-                        $this->plex_urls[$servers_lookup[$d['name']]] = $conn['uri'];
+                    if ($conn['local'] && $_SERVER['USER'] == $servers[$d['name']]['host']) {
+                        $this->plex_urls[$servers[$d['name']]['instance']] = "http://{$conn['address']}:{$conn['port']}";
+                    } elseif (!$conn['local'] && $_SERVER['USER'] != $servers[$d['name']]['host'] && !$conn['relay']) {
+                        $this->plex_urls[$servers[$d['name']]['instance']] = $conn['uri'];
                     }
                 }
             }
