@@ -7,16 +7,27 @@ require_once "tools.php";
 $tools = new Tools();
 $tools->curl_timeout = 60;
 
+$watchlist = [];
+$watchlist_raw = $tools->getPlexWatchlist();
+foreach ($watchlist_raw['MediaContainer']['Metadata'] as $w) {
+    if ($w['type'] != "show") continue;
+    $watchlist[] = $w['title'];
+}
+
 $data_raw = $tools->callPlex("/playlists/76044/items", 'local');
 $episodes = $data_raw['MediaContainer']['Metadata'];
 
 foreach ($episodes as $ep) {
     $show_title = $ep['grandparentTitle'];
+    if (in_array($show_title, $watchlist)) {
+        $tools->logToFile("{$show_title} found in watchlist", false, true);
+        continue;
+    }
     $episode_name = "{$show_title} - S{$ep['parentIndex']}E{$ep['index']}";
     foreach ($ep['Media'] as $filename_info) {
         $filename = $filename_info['Part'][0]['file'];
         if (!strpos($filename, 'Other Videos')) {
-            // $tools->logToFile("Not in archive yet: {$episode_name}");
+            $tools->logToFile("Not in archive yet: {$episode_name}", false, true);
             continue 2;
         }
     }

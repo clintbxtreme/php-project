@@ -281,6 +281,25 @@ class Tools
 		return $data;
 	}
 
+    public function getPlexWatchlist() {
+        $postToUrlRetry = $this->postToUrlRetry;
+        $this->postToUrlRetry = false;
+        $curlTimeout = $this->curl_timeout;
+        $this->curl_timeout = 60;
+        $headers = [
+            "Accept: application/json",
+            "X-Plex-Token: " . $this->getPlexToken()
+		];
+        $url = "https://discover.provider.plex.tv/library/sections/watchlist/all";
+        $this->logToFile("getting Plex watchlist", false, true);
+        $file_contents = $this->postToUrl($url, [], $headers);
+        $this->logToFile("done getting Plex watchlist", false, true);
+        $data = json_decode($file_contents, true);
+        $this->postToUrlRetry = $postToUrlRetry;
+        $this->curl_timeout = $curlTimeout;
+        return $data;
+    }
+
     public function getTraktAccessToken()
     {
         $info = $this->getTraktSettings();
@@ -333,7 +352,7 @@ class Tools
                 $this->sendError($error_msg, true);
             }
         }
-        if (time()  >= $info['created_at'] + $info['expires_in']) {
+        if (true || time()  >= $info['created_at'] + $info['expires_in']) {
             $data = [
                 "refresh_token" => $info['refresh_token'],
                 "client_id"     => $info['client_id'],
@@ -455,9 +474,9 @@ class Tools
         foreach($data as $d) {
             if (isset($servers[$d['name']])) {
                 foreach($d['connections'] as $conn) {
-                    if ($conn['local'] && $_SERVER['USER'] == $servers[$d['name']]['host']) {
+                    if ($conn['local'] && in_array($_SERVER['USER'], $servers[$d['name']]['hosts'])) {
                         $this->plex_urls[$servers[$d['name']]['instance']] = "http://{$conn['address']}:{$conn['port']}";
-                    } elseif (!$conn['local'] && $_SERVER['USER'] != $servers[$d['name']]['host'] && !$conn['relay']) {
+                    } elseif (!$conn['local'] && !in_array($_SERVER['USER'], $servers[$d['name']]['hosts']) && !$conn['relay']) {
                         $this->plex_urls[$servers[$d['name']]['instance']] = $conn['uri'];
                     }
                 }
@@ -616,6 +635,6 @@ class Tools
     }
 
     public function getPublicIp() {
-        return file_get_contents("http://ipecho.net/plain");
+        return file_get_contents("https://ipecho.net/plain");
     }
 }
