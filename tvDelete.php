@@ -19,11 +19,11 @@ $episodes = $data_raw['MediaContainer']['Metadata'];
 
 foreach ($episodes as $ep) {
     $show_title = $ep['grandparentTitle'];
-    if (in_array($show_title, $watchlist)) {
-        $tools->logToFile("{$show_title} found in watchlist", false, true);
+    $episode_name = "{$show_title} - S{$ep['parentIndex']}E{$ep['index']}";
+    if (in_array($show_title, $watchlist) && !isset($ep['viewCount'])) {
+        $tools->logToFile("Unwatched in watchlist: {$episode_name}", false, true);
         continue;
     }
-    $episode_name = "{$show_title} - S{$ep['parentIndex']}E{$ep['index']}";
     foreach ($ep['Media'] as $filename_info) {
         $filename = $filename_info['Part'][0]['file'];
         if (!strpos($filename, 'Other Videos')) {
