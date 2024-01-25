@@ -58,8 +58,16 @@ foreach ($shows_data['MediaContainer']['Metadata'] as $show) {
         $keep = false;
         $ep_key = $ep['parentIndex'] . sprintf('%02d', $ep['index']);
         $episode_name = "{$show_title} - S{$ep['parentIndex']}E{$ep['index']}";
+        if (isset($ep['updatedAt'])) {
+            $dt = $ep['updatedAt'];
+        } elseif (isset($ep['addedAt'])) {
+            $dt = $ep['addedAt'];
+        } else {
+            $tools->sendError("no date to compare: " . json_encode($ep));
+            continue;
+        }
         // if no one is watching it, wait x days
-        if (!isset($watched[$show_title]) && $ep['updatedAt'] > strtotime("60 days ago")) {
+        if (!isset($watched[$show_title]) && $dt > strtotime("60 days ago")) {
             $keep = true;
         } elseif (isset($watched[$show_title])) {
             foreach ($watched[$show_title] as $name => $max_watched) {
