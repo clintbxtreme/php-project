@@ -71,8 +71,8 @@ foreach ($shows_data['MediaContainer']['Metadata'] as $show) {
             $keep = true;
         } elseif (isset($watched[$show_title])) {
             foreach ($watched[$show_title] as $name => $max_watched) {
-                // wait till everyone has watched it
-                if ($max_watched < $ep_key) {
+                // wait till everyone has watched it or it was added after the last time the show was watched
+                if ($max_watched < $ep_key || $dt >= $max_viewed_at[$show_title][$name]) {
                     $tools->logToFile("{$name} needs to watch {$episode_name}");
                     $keep = true;
                 }
