@@ -58,10 +58,10 @@ foreach ($shows_data['MediaContainer']['Metadata'] as $show) {
         $keep = false;
         $ep_key = $ep['parentIndex'] . sprintf('%02d', $ep['index']);
         $episode_name = "{$show_title} - S{$ep['parentIndex']}E{$ep['index']}";
-        if (isset($ep['updatedAt'])) {
-            $dt = $ep['updatedAt'];
-        } elseif (isset($ep['addedAt'])) {
+        if (isset($ep['addedAt'])) {
             $dt = $ep['addedAt'];
+        } elseif (isset($ep['updatedAt'])) {
+            $dt = $ep['updatedAt'];
         } else {
             $tools->sendError("no date to compare: " . json_encode($ep));
             continue;
