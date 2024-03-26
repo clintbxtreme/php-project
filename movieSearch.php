@@ -53,7 +53,14 @@ $payload = array(
 
 $payload_json = json_encode($payload);
 
+$distinct_file = "/tmp/ms-" . base64_encode($_REQUEST['title']);
+if (file_exists($distinct_file)) {
+	return;
+}
+
 $tools->postToUrl($slack_url, ["payload" => $payload_json]);
+
+touch($distinct_file);
 
 
 class MovieSearch
