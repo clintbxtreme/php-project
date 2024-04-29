@@ -290,7 +290,7 @@ class Tools
             "Accept: application/json",
             "X-Plex-Token: " . $this->getPlexToken()
 		];
-        $url = "https://discover.provider.plex.tv/library/sections/watchlist/all";
+        $url = "https://discover.provider.plex.tv/library/sections/watchlist/all?X-Plex-Container-Size=100";
         $this->logToFile("getting Plex watchlist", false, true);
         $file_contents = $this->postToUrl($url, [], $headers);
         $this->logToFile("done getting Plex watchlist", false, true);
