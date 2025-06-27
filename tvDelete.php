@@ -26,7 +26,7 @@ foreach ($episodes as $ep) {
     }
     foreach ($ep['Media'] as $filename_info) {
         $filename = $filename_info['Part'][0]['file'];
-        if (!strpos($filename, 'Other Videos')) {
+        if (strpos($filename, '/Videos/')) {
             $tools->logToFile("Not in archive yet: {$episode_name}", false, true);
             continue 2;
         }
