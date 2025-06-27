@@ -28,6 +28,7 @@ if ($title) {
 	}
 }
 
+$thumb_url = "";
 if (!$result) {
 	if ($src == 'released') {
         $tools->logToFile("Skipping {$_REQUEST['title']} as it was not found in TMDB and it's a released movie");
@@ -53,7 +54,6 @@ if (!$result) {
         $thumb_url = $thumb_url_base . $result['backdrop_path'];
     } else {
         $tools->logToFile("No poster or backdrop found for {$result['title']}");
-        $thumb_url = "";
 
     }
 	$genres = $movie_search->getGenres($details);
