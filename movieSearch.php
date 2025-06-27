@@ -60,27 +60,38 @@ if (!$result) {
 	$content = "{$mpa}\n{$genres}\n{$details['release_date']}\n{$details['overview']}";
 	$title_link = "http://www.imdb.com/title/{$details['imdb_id']}/";
 }
-$payload = array(
-	"attachments" => array(
-		array(
-			"title" => $_REQUEST['title'],
-			"title_link" => $title_link,
-			"thumb_url" => $thumb_url,
-			"text" => $content,
-			"mrkdwn_in" => array("text"),
-			"fallback" => $_REQUEST['title'],
-		)
-	)
-);
 
-$payload_json = json_encode($payload);
+$payload = [
+    "text" => $_REQUEST['title'],
+    "blocks" => [
+        [
+            "type" => "section",
+            "text" => [
+                "type" => "mrkdwn",
+                "text" => "*<{$title_link}|{$_REQUEST['title']}>*",
+            ],
+        ],
+        [
+            "type" => "section",
+            "text" => [
+                "type" => "plain_text",
+                "text" => $content,
+            ],
+        ],
+        [
+            "type" => "image",
+            "image_url" => $thumb_url,
+            "alt_text" => "image",
+        ],
+    ],
+];
 
 $distinct_file = "/tmp/ms-" . base64_encode($_REQUEST['title']);
 if (file_exists($distinct_file)) {
 	return;
 }
 
-$tools->postToUrl($slack_url, ["payload" => $payload_json]);
+$tools->postToSlack($payload, $slack_url);
 
 touch($distinct_file);
 
