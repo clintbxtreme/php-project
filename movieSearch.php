@@ -16,7 +16,10 @@ $title_search = preg_replace('/\[.*/', '', $_REQUEST['title']);
 $title = $movie_search->cleanTitle($title_search);
 if ($title) {
 	$year = $movie_search->cleanYear($title_search);
-	if ($year && $year < 2019) exit;
+	if ($year && $year < 2019) {
+        $tools->logToFile("Skipping {$_REQUEST['title']} as it is before 2019");
+        exit;
+    }
 	$results = $movie_search->search($title);
 	if ($results && is_array($results)) {
 		$result = $movie_search->matchResults($title, $year, $results);
@@ -26,14 +29,33 @@ if ($title) {
 }
 
 if (!$result) {
-	if ($src == 'released') exit;
+	if ($src == 'released') {
+        $tools->logToFile("Skipping {$_REQUEST['title']} as it was not found in TMDB and it's a released movie");
+        exit;
+    }
 	$content = "No TMDB result for {$_REQUEST['title']}";
 	$title_link = $_REQUEST['url'];
 } else {
 	$details = $movie_search->getDetails($result['id']);
 	list($mpa, $mpa_found) = $movie_search->getMpa($details);
-	if ($src == 'released' && !$mpa_found) exit;
-	if ($mpa == 'R') exit;
+	if ($src == 'released' && !$mpa_found) {
+        $tools->logToFile("Skipping {$_REQUEST['title']} as it's a released movie without MPA rating");
+        exit;
+    }
+	if ($mpa == 'R') {
+        $tools->logToFile("Skipping {$_REQUEST['title']} as it has an R rating");
+        exit;
+    }
+    $thumb_url_base = "http://image.tmdb.org/t/p/w780";
+    if ($result['poster_path'] != null) {
+        $thumb_url = $thumb_url_base . $result['poster_path'];
+}   elseif ($result['backdrop_path'] != null) {
+        $thumb_url = $thumb_url_base . $result['backdrop_path'];
+    } else {
+        $tools->logToFile("No poster or backdrop found for {$result['title']}");
+        $thumb_url = "";
+
+    }
 	$genres = $movie_search->getGenres($details);
 	$content = "{$mpa}\n{$genres}\n{$details['release_date']}\n{$details['overview']}";
 	$title_link = "http://www.imdb.com/title/{$details['imdb_id']}/";
@@ -43,7 +65,7 @@ $payload = array(
 		array(
 			"title" => $_REQUEST['title'],
 			"title_link" => $title_link,
-			"thumb_url" => $_REQUEST['image'],
+			"thumb_url" => $thumb_url,
 			"text" => $content,
 			"mrkdwn_in" => array("text"),
 			"fallback" => $_REQUEST['title'],
@@ -159,7 +181,7 @@ class MovieSearch
 		}
 
 		if ($possible_mpa) {
-			return [implode(", ", $possible_mpa), false];
+			return [implode(", ", $possible_mpa), true];
 		} else {
 			$this->tools->logToFile("no mpa found. details:");
 			$this->tools->logToFile($details);
